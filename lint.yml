@@ -1,0 +1,40 @@
+name: Lint PHP & JS
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  lint:
+    name: Lint PHP and JS
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.1'
+
+      - name: PHP - Lint all PHP files
+        run: |
+          echo "Running PHP lint..."
+          # Find PHP files excluding vendor and .git and lint them
+          find . -type f -name "*.php" -not -path "./vendor/*" -not -path "./.git/*" -print0 \
+            | xargs -0 -n1 -P4 -I{} bash -c 'php -l "{}"'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: JS - Syntax check
+        run: |
+          echo "Running JS syntax check..."
+          # Use node --check to verify JS syntax (skip node_modules)
+          find . -type f -name "*.js" -not -path "./node_modules/*" -not -path "./.git/*" -print0 \
+            | xargs -0 -n1 -P4 -I{} bash -c 'node --check "{}" || exit 1'
